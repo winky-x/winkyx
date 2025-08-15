@@ -43,7 +43,7 @@ WinkyX is released under a **Modified MIT License**.
 - ❌ You may NOT clone, rebrand, or resell it as your own app.
 - 🧾 Commercial use or mass redistribution requires permission.
 
-> See the full LICENSE [here](./LICENSE.md)
+> See the full LICENSE [here](/LICENSE.md)
 
 ---
 
