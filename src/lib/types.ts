@@ -15,7 +15,7 @@ export interface Message {
   text: string;
   timestamp: number;
   isSentByCurrentUser: boolean;
-  status: 'sent' | 'delivered' | 'read' | 'failed' | 'queued';
+  status: 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
 }
 
 export interface Chat {

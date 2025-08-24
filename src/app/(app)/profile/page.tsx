@@ -121,7 +121,7 @@ export default function ProfilePage() {
 
     getIdentity().then(id => {
       setIdentity(id);
-      if (!storedName) {
+      if (!storedName && id) {
           const generatedName = `User ${getPublicKeyFingerprint(id).split('-')[0]}`
           setNickname(generatedName)
           setTempName(generatedName)

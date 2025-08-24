@@ -1,8 +1,7 @@
 /**
- * @fileoverview Data Service for WinkyX.
- * Simulates a local database (like SQLite or IndexedDB) for storing messages
+ * @fileoverview Data Service for WinkyX (Mobile).
+ * Implements a local database using Expo's SQLite module for storing messages
  * and managing a message queue for offline sending.
- * For this web-based MVP, it uses localStorage.
  *
  * Exports:
  * - StoredMessage: Type definition for a message in storage.
@@ -13,30 +12,71 @@
  * - removeMessageFromQueue: Removes a message from the send queue.
  */
 
-'use an strict';
+'use strict';
 
-import { saveToStorage, getFromStorage } from '@/lib/storage';
+import * as SQLite from 'expo-sqlite';
 
-const MESSAGE_STORE_PREFIX = 'winkyx_messages_';
-const MESSAGE_QUEUE_KEY = 'winkyx_message_queue';
+const db = SQLite.openDatabase('winkyx.db');
+
+const executeSql = (sql: string, params: any[] = []): Promise<SQLite.SQLResultSet> => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        params,
+        (_, result) => resolve(result),
+        (_, error) => {
+          reject(error);
+          return false; // Rollback transaction
+        }
+      );
+    });
+  });
+};
+
+
+// --- Database Initialization ---
+
+const initializeDatabase = async () => {
+  await executeSql(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY NOT NULL,
+      peer_public_key TEXT NOT NULL,
+      from_public_key TEXT NOT NULL,
+      to_public_key TEXT NOT NULL,
+      encrypted_content TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      is_sent_by_current_user INTEGER NOT NULL
+    );
+  `);
+
+  await executeSql(`
+    CREATE TABLE IF NOT EXISTS message_queue (
+      message_id TEXT PRIMARY KEY NOT NULL,
+      FOREIGN KEY (message_id) REFERENCES messages(id)
+    );
+  `);
+};
+
+// Call initialization once
+initializeDatabase().catch(error => console.error("Failed to initialize database:", error));
+
 
 // --- Type Definitions ---
 
 export interface StoredMessage {
   id: string;
-  fromPublicKey: string; // Base64 public key of sender
-  toPublicKey: string;   // Base64 public key of recipient
-  encryptedContent: string; // Base64 of EncryptedMessage object
+  peer_public_key: string; // The other person in the chat
+  from_public_key: string; // Base64 public key of sender
+  to_public_key: string;   // Base64 public key of recipient
+  encrypted_content: string; // Base64 of EncryptedMessage object
   timestamp: number;
   status: 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
-  isSentByCurrentUser: boolean;
+  is_sent_by_current_user: boolean;
 }
 
 // --- Message Store Functions ---
-
-function getStorageKeyForPeer(peerPublicKey: string): string {
-  return `${MESSAGE_STORE_PREFIX}${peerPublicKey}`;
-}
 
 /**
  * Retrieves all messages exchanged with a specific peer.
@@ -46,28 +86,35 @@ function getStorageKeyForPeer(peerPublicKey: string): string {
 export async function getMessagesForPeer(
   peerPublicKey: string
 ): Promise<StoredMessage[]> {
-  const key = getStorageKeyForPeer(peerPublicKey);
-  const messages = getFromStorage(key);
-  return Array.isArray(messages) ? messages : [];
+  const resultSet = await executeSql(
+    'SELECT * FROM messages WHERE peer_public_key = ? ORDER BY timestamp ASC;',
+    [peerPublicKey]
+  );
+  return resultSet.rows._array;
 }
 
 /**
  * Saves a message to the local store for a specific peer conversation.
  * @param message The message object to save.
- * @param peerPublicKey The Base64 public key of the peer in the conversation.
  * @returns A promise that resolves when the message is saved.
  */
 export async function saveMessage(
   message: StoredMessage,
-  peerPublicKey: string
 ): Promise<void> {
-  const key = getStorageKeyForPeer(peerPublicKey);
-  const messages = await getMessagesForPeer(peerPublicKey);
-  // Avoid duplicates
-  if (!messages.find(m => m.id === message.id)) {
-    messages.push(message);
-    saveToStorage(key, messages);
-  }
+  await executeSql(
+    `INSERT OR IGNORE INTO messages (id, peer_public_key, from_public_key, to_public_key, encrypted_content, timestamp, status, is_sent_by_current_user)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+    [
+      message.id,
+      message.peer_public_key,
+      message.from_public_key,
+      message.to_public_key,
+      message.encrypted_content,
+      message.timestamp,
+      message.status,
+      message.is_sent_by_current_user ? 1 : 0,
+    ]
+  );
 }
 
 // --- Message Queue Functions ---
@@ -77,8 +124,12 @@ export async function saveMessage(
  * @returns A promise that resolves to an array of StoredMessage objects.
  */
 export async function getMessageQueue(): Promise<StoredMessage[]> {
-  const queue = getFromStorage(MESSAGE_QUEUE_KEY);
-  return Array.isArray(queue) ? queue : [];
+  const resultSet = await executeSql(`
+    SELECT m.* FROM messages m
+    INNER JOIN message_queue mq ON m.id = mq.message_id
+    ORDER BY m.timestamp ASC;
+  `);
+  return resultSet.rows._array;
 }
 
 /**
@@ -87,11 +138,7 @@ export async function getMessageQueue(): Promise<StoredMessage[]> {
  * @returns A promise that resolves when the message is added.
  */
 export async function addMessageToQueue(message: StoredMessage): Promise<void> {
-  const queue = await getMessageQueue();
-  if (!queue.find(m => m.id === message.id)) {
-    queue.push(message);
-    saveToStorage(MESSAGE_QUEUE_KEY, queue);
-  }
+  await executeSql('INSERT OR IGNORE INTO message_queue (message_id) VALUES (?);', [message.id]);
 }
 
 /**
@@ -100,7 +147,5 @@ export async function addMessageToQueue(message: StoredMessage): Promise<void> {
  * @returns A promise that resolves when the queue is updated.
  */
 export async function removeMessageFromQueue(messageId: string): Promise<void> {
-  let queue = await getMessageQueue();
-  queue = queue.filter(m => m.id !== messageId);
-  saveToStorage(MESSAGE_QUEUE_KEY, queue);
+  await executeSql('DELETE FROM message_queue WHERE message_id = ?;', [messageId]);
 }

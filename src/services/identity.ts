@@ -2,7 +2,7 @@
  * @fileoverview Identity Service for WinkyX.
  * Manages the user's cryptographic identity, which consists of their key pairs.
  * This service handles the creation, storage, and retrieval of the user's identity
- * from the device's local storage.
+ * from the device's secure storage.
  *
  * Exports:
  * - Identity: Type definition for the user's full identity.
@@ -13,10 +13,11 @@
 'use client';
 
 import nacl from 'tweetnacl';
+import * as Keychain from 'react-native-keychain';
 import * as crypto from './crypto';
 import { saveToStorage, getFromStorage } from '@/lib/storage';
 
-const IDENTITY_STORAGE_KEY = 'winkyx_identity';
+const IDENTITY_SERVICE_NAME = 'com.winkyx.identity';
 
 // --- Type Definitions ---
 
@@ -30,8 +31,7 @@ export interface Identity {
 // --- Private Helper Functions ---
 
 /**
- * Creates and stores a new identity.
- * This should only be called if no identity exists.
+ * Creates and stores a new identity in the device keychain.
  * @returns A promise that resolves to the newly created Identity.
  */
 async function createAndStoreIdentity(): Promise<Identity> {
@@ -42,22 +42,27 @@ async function createAndStoreIdentity(): Promise<Identity> {
     signPublicKeyBase64: crypto.toBase64(keyPair.signPublicKey),
   };
 
-  // For storage, we only store the private keys. Public keys can be derived.
-  const storableIdentity = {
+  const storableIdentity = JSON.stringify({
     privateKey: crypto.toBase64(keyPair.privateKey),
     signPrivateKey: crypto.toBase64(keyPair.signPrivateKey),
-  };
+  });
 
-  saveToStorage(IDENTITY_STORAGE_KEY, storableIdentity);
+  await Keychain.setGenericPassword('user_identity', storableIdentity, {
+    service: IDENTITY_SERVICE_NAME,
+  });
+
   return identity;
 }
 
 /**
- * Loads an identity from stored private keys.
- * @param storedIdentity The object retrieved from local storage.
+ * Loads an identity from the device keychain.
+ * @param credentials The credentials retrieved from the keychain.
  * @returns A promise that resolves to the reconstructed Identity.
  */
-async function loadIdentityFromStorage(storedIdentity: any): Promise<Identity> {
+async function loadIdentityFromKeychain(
+  credentials: Keychain.UserCredentials
+): Promise<Identity> {
+  const storedIdentity = JSON.parse(credentials.password);
   const privateKey = crypto.fromBase64(storedIdentity.privateKey);
   const signPrivateKey = crypto.fromBase64(storedIdentity.signPrivateKey);
 
@@ -81,9 +86,8 @@ async function loadIdentityFromStorage(storedIdentity: any): Promise<Identity> {
 let memoryIdentity: Identity | null = null;
 
 /**
- * Retrieves the user's identity.
- * If an identity exists in storage, it's loaded. Otherwise, a new one is
- * created and stored. The result is cached in memory for the session.
+ * Retrieves the user's identity from secure storage.
+ * If an identity exists, it's loaded. Otherwise, a new one is created.
  * @returns A promise that resolves to the user's Identity.
  */
 export async function getIdentity(): Promise<Identity> {
@@ -91,13 +95,18 @@ export async function getIdentity(): Promise<Identity> {
     return memoryIdentity;
   }
 
-  const storedIdentity = getFromStorage(IDENTITY_STORAGE_KEY);
-
-  if (storedIdentity && storedIdentity.privateKey) {
-    memoryIdentity = await loadIdentityFromStorage(storedIdentity);
-  } else {
+  try {
+    const credentials = await Keychain.getGenericPassword({ service: IDENTITY_SERVICE_NAME });
+    if (credentials) {
+      memoryIdentity = await loadIdentityFromKeychain(credentials);
+    } else {
+      memoryIdentity = await createAndStoreIdentity();
+    }
+  } catch (error) {
+    console.error('Keychain access failed, creating new identity as fallback:', error);
     memoryIdentity = await createAndStoreIdentity();
   }
+
 
   return memoryIdentity;
 }

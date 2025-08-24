@@ -1,6 +1,6 @@
 import type { Peer, Chat, Message } from './types';
 
-// This is mock data. In a real app, peers would be discovered via BLE/WiFi Direct.
+// This is mock data for PEERS only. Chat messages are now managed by the data service.
 // The public keys here are now valid, randomly generated Base64 keys.
 export const peers: Peer[] = [
   { id: '1', name: 'QuantumLeap', avatar: 'Q', status: 'online', publicKey: 'YJj63Vd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8c/3R6E7Xw=', signPublicKey: 'bsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Qz/2jXJ/7K9HA=' },
@@ -44,23 +44,14 @@ let chats: Chat[] = [
 // --- Data Management Functions ---
 
 export function getChats(): Chat[] {
+  // In a real app, this would be populated from the database.
+  // For now, we use the in-memory mock.
   return chats;
 }
 
 export function getChat(peerId: string): Chat | undefined {
   return chats.find(c => c.peer.id === peerId);
 }
-
-export function addMessageToChat(peerId: string, message: Omit<Message, 'id'>): Chat | undefined {
-    const chatIndex = chats.findIndex(c => c.peer.id === peerId);
-    if (chatIndex !== -1) {
-        const newMessage = { ...message, id: `msg-${Date.now()}-${Math.random()}` };
-        chats[chatIndex].messages.push(newMessage);
-        return chats[chatIndex];
-    }
-    return undefined;
-}
-
 
 export function updateChat(peerId: string, updates: Partial<Chat>): Chat | undefined {
   const chatIndex = chats.findIndex(c => c.peer.id === peerId);

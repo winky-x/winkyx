@@ -97,9 +97,10 @@ export default function ChatPage() {
     if (!chat) return;
 
     const identity = await getIdentity();
-    const peerPublicKey = crypto.fromBase64(chat.peer.publicKey);
+    const peerPublicKeyBytes = crypto.fromBase64(chat.peer.publicKey);
     
-    const encryptedPayload = await crypto.encryptMessage(text, peerPublicKey, identity.keyPair);
+    const encryptedPayload = await crypto.encryptMessage(text, peerPublicKeyBytes, identity.keyPair);
+    
     const encryptedContent = JSON.stringify({
         ciphertext: crypto.toBase64(encryptedPayload.ciphertext),
         nonce: crypto.toBase64(encryptedPayload.nonce),
@@ -108,16 +109,17 @@ export default function ChatPage() {
 
     const storedMessage: data.StoredMessage = {
         id: `msg-${Date.now()}`,
-        fromPublicKey: identity.publicKeyBase64,
-        toPublicKey: chat.peer.publicKey,
-        encryptedContent,
+        peer_public_key: chat.peer.publicKey,
+        from_public_key: identity.publicKeyBase64,
+        to_public_key: chat.peer.publicKey,
+        encrypted_content: encryptedContent,
         timestamp: Date.now(),
         status: 'queued',
-        isSentByCurrentUser: true,
+        is_sent_by_current_user: true,
     }
     
-    // Save to local "DB" and add to send queue
-    await data.saveMessage(storedMessage, chat.peer.publicKey);
+    // Save to local DB and add to send queue
+    await data.saveMessage(storedMessage);
     await data.addMessageToQueue(storedMessage);
     
     // For UI purposes, we add the unencrypted text.
@@ -128,7 +130,7 @@ export default function ChatPage() {
       text,
       timestamp: Date.now(),
       isSentByCurrentUser: true,
-      status: "sent",
+      status: "queued",
     };
     
     const updatedChat = updateChat(chat.peer.id, {
