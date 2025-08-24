@@ -1,0 +1,17 @@
+
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./apps/server/.env
+    volumes:
+      - ./apps/server/src:/usr/src/app/apps/server/src # For development hot-reloading
+    # Use host network to allow easier LAN discovery from mobile devices
+    network_mode: "host"
+

@@ -7,7 +7,8 @@
     "dev": "pnpm --filter \"./apps/*\" dev",
     "start": "pnpm --filter \"./apps/*\" start",
     "lint": "pnpm --filter \"./apps/*\" lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm --filter \"./apps/*\" test"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",
