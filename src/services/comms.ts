@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Communications Service for WinkyX.
  * This is a placeholder/simulation layer for the actual native peer-to-peer
