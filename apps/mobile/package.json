@@ -28,7 +28,9 @@
     "react-native-screens": "3.31.1",
     "react-native-web": "~0.19.10",
     "react-native-wifi-p2p": "^3.5.0",
-    "react-native-background-fetch": "^4.2.1"
+    "react-native-background-fetch": "^4.2.1",
+    "expo-font": "~12.0.5",
+    "framer-motion": "^11.2.10"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

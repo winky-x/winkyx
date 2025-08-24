@@ -1,99 +1,65 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Orbitron_400Regular, Orbitron_700Bold } from '@expo-google-fonts/orbitron';
+import { SourceCodePro_400Regular } from '@expo-google-fonts/source-code-pro';
+import { View, ActivityIndicator } from 'react-native';
 import { styled } from 'nativewind';
+
 import "./global.css";
 
+// Import Screens
+import LockScreen from './src/screens/LockScreen';
+import ChatListScreen from './src/screens/ChatListScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import ParityHarnessScreen from './src/screens/ParityHarnessScreen';
+
 const StyledView = styled(View);
-const StyledText = styled(Text);
-
-// Dummy Screens for scaffolding
-const LockScreen = () => (
-  <StyledView className="flex-1 items-center justify-center bg-background">
-    <StyledText className="text-foreground text-2xl">Lock Screen</StyledText>
-  </StyledView>
-);
-
-const ChatListScreen = () => (
-  <StyledView className="flex-1 items-center justify-center bg-background">
-    <StyledText className="text-foreground text-2xl">Chat List</StyledText>
-  </StyledView>
-);
-
-
-const ParityHarnessScreen = () => (
-    <SafeAreaView style={{ flex: 1 }}>
-        <StyledView className="flex-1 bg-background p-4 space-y-4">
-            <StyledText className="text-foreground text-2xl font-bold mb-4">UI Parity Harness</StyledText>
-            
-            <StyledView>
-                <StyledText className="text-foreground mb-2 font-headline">Buttons</StyledText>
-                <StyledView className="flex-row gap-2">
-                    <StyledView className="bg-primary p-2 rounded-md">
-                        <StyledText className="text-primary-foreground">Primary</StyledText>
-                    </StyledView>
-                    <StyledView className="bg-secondary p-2 rounded-md">
-                        <StyledText className="text-secondary-foreground">Secondary</StyledText>
-                    </StyledView>
-                     <StyledView className="bg-destructive p-2 rounded-md">
-                        <StyledText className="text-destructive-foreground">Destructive</StyledText>
-                    </StyledView>
-                    <StyledView className="bg-accent p-2 rounded-md">
-                        <StyledText className="text-accent-foreground">Accent</StyledText>
-                    </StyledView>
-                </StyledView>
-            </StyledView>
-
-             <StyledView>
-                <StyledText className="text-foreground mb-2 font-headline">Cards & Panels</StyledText>
-                <StyledView className="bg-card p-4 rounded-lg border border-border">
-                    <StyledText className="text-card-foreground font-bold">Card Title</StyledText>
-                    <StyledText className="text-muted-foreground">This is a card component.</StyledText>
-                </StyledView>
-            </StyledView>
-
-            <StyledView>
-                <StyledText className="text-foreground mb-2 font-headline">Inputs</StyledText>
-                <StyledView className="bg-input p-2 rounded-md border border-border">
-                    <StyledText className="text-muted-foreground">Input field</StyledText>
-                </StyledView>
-            </StyledView>
-
-            <StyledView>
-                <StyledText className="text-foreground mb-2 font-headline">Typography</StyledText>
-                <StyledText className="font-body text-foreground">Body Font (Inter)</StyledText>
-                <StyledText className="font-headline text-foreground">Headline Font (Orbitron)</StyledText>
-                <StyledText className="font-code text-foreground">Code Font (Source Code Pro)</StyledText>
-            </StyledView>
-
-        </StyledView>
-    </SafeAreaView>
-);
-
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  let [fontsLoaded] = useFonts({
+    Inter: Inter_400Regular,
+    Inter_500Medium,
+    Inter_700Bold,
+    Orbitron: Orbitron_400Regular,
+    Orbitron_700Bold,
+    SourceCodePro: SourceCodePro_400Regular,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <StyledView className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="white" />
+      </StyledView>
+    );
+  }
+
   return (
     <SafeAreaProvider>
         <NavigationContainer>
             <Stack.Navigator 
-                initialRouteName="ParityHarness"
+                initialRouteName="Lock"
                 screenOptions={{
                     headerShown: false,
                     contentStyle: { backgroundColor: 'hsl(var(--background))' },
+                    animation: 'fade',
                 }}
             >
                 <Stack.Screen name="Lock" component={LockScreen} />
                 <Stack.Screen name="ChatList" component={ChatListScreen} />
+                <Stack.Screen name="Chat" component={ChatScreen} />
+                <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="ParityHarness" component={ParityHarnessScreen} />
             </Stack.Navigator>
         </NavigationContainer>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }
