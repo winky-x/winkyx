@@ -32,7 +32,9 @@
     "expo-font": "~12.0.5",
     "framer-motion": "^11.2.10",
     "expo-blur": "~13.0.2",
-    "react-native-linear-gradient": "^2.8.3"
+    "react-native-linear-gradient": "^2.8.3",
+    "expo-notifications": "~0.28.9",
+    "expo-device": "~6.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

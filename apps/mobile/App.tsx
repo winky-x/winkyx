@@ -12,6 +12,11 @@ import { styled } from 'nativewind';
 
 import "./global.css";
 
+// Import Services
+import { configureBackgroundFetch } from './src/services/background';
+import { registerForPushNotificationsAsync } from './src/services/notifications';
+
+
 // Import Screens
 import LockScreen from './src/screens/LockScreen';
 import ChatListScreen from './src/screens/ChatListScreen';
@@ -32,6 +37,12 @@ export default function App() {
     Orbitron_700Bold,
     SourceCodePro: SourceCodePro_400Regular,
   });
+
+  useEffect(() => {
+    // Configure system services on app start
+    registerForPushNotificationsAsync();
+    configureBackgroundFetch();
+  }, []);
 
   if (!fontsLoaded) {
     return (
