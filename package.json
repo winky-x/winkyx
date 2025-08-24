@@ -1,14 +1,12 @@
+
 {
-  "name": "nextn",
-  "version": "0.1.0",
+  "name": "winkyx-monorepo",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 9002",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "dev": "pnpm --filter \"./apps/*\" dev",
+    "start": "pnpm --filter \"./apps/*\" start",
+    "lint": "pnpm --filter \"./apps/*\" lint",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -71,5 +69,8 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
