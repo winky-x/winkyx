@@ -14,20 +14,43 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.winkyx.mobile"
+      "bundleIdentifier": "com.winkyx.mobile",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "WinkyX uses Bluetooth to discover and connect with nearby devices for offline messaging.",
+        "NSBluetoothPeripheralUsageDescription": "WinkyX uses Bluetooth to advertise its presence to other nearby devices for offline messaging.",
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.winkyx.mobile"
+      "package": "com.winkyx.mobile",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.CHANGE_WIFI_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-background-fetch",
+        {
+          "minimumFetchInterval": 15
+        }
+      ]
     ],
     "scheme": "winkyx"
   }

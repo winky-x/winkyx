@@ -55,22 +55,47 @@ export default function ChatScreen() {
 
     const chat = getChat(chatId);
 
-    // Load messages from DB on screen load
+    // Load and decrypt messages from DB on screen load
     useEffect(() => {
         if (chat) {
           data.getMessagesForPeer(chat.peer.publicKey).then(async (storedMessages) => {
-              const decryptedMessages: MessageType[] = [];
               const identity = await getIdentity();
+              const decryptedMessages: MessageType[] = [];
 
               for (const msg of storedMessages) {
                   const encryptedPayload = JSON.parse(msg.encrypted_content);
+                  const encryptedMessage: crypto.EncryptedMessage = {
+                      ciphertext: crypto.fromBase64(encryptedPayload.ciphertext),
+                      nonce: crypto.fromBase64(encryptedPayload.nonce),
+                      signature: crypto.fromBase64(encryptedPayload.signature),
+                  };
+
+                  let decryptedText = 'Failed to decrypt message.';
+                  // Determine sender's keys based on who sent the message
                   const senderPublicKey = crypto.fromBase64(msg.from_public_key);
-                  const senderSignPublicKey = crypto.fromBase64('...'); // This needs to be stored with the peer
+                  const senderSignPublicKey = chat.peer.signPublicKey ? crypto.fromBase64(chat.peer.signPublicKey) : identity.keyPair.signPublicKey;
+
+                  if (msg.is_sent_by_current_user) {
+                      // Decrypting our own message sent to the peer
+                      decryptedText = await crypto.decryptMessage(
+                          encryptedMessage,
+                          crypto.fromBase64(chat.peer.publicKey),
+                          crypto.fromBase64(chat.peer.signPublicKey),
+                          identity.keyPair
+                      ) || decryptedText;
+                  } else {
+                      // Decrypting a message received from the peer
+                      decryptedText = await crypto.decryptMessage(
+                          encryptedMessage,
+                          senderPublicKey,
+                          senderSignPublicKey,
+                          identity.keyPair
+                      ) || decryptedText;
+                  }
                   
-                  const text = `Encrypted: ${encryptedPayload.ciphertext.substring(0, 20)}...`;
                   decryptedMessages.push({
                       id: msg.id,
-                      text: text, // Placeholder for decrypted text
+                      text: decryptedText,
                       timestamp: msg.timestamp,
                       isSentByCurrentUser: msg.is_sent_by_current_user,
                       senderId: msg.from_public_key,
@@ -83,7 +108,7 @@ export default function ChatScreen() {
         } else {
              setMessages([]);
         }
-    }, [chatId]);
+    }, [chatId, chat]);
 
 
     useEffect(() => {
