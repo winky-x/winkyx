@@ -115,6 +115,7 @@ export default function LockScreenPage() {
         className="z-0 object-cover"
         data-ai-hint="abstract background"
       />
+      <div className="absolute inset-0 bg-black/60" />
 
       <motion.div
         className="relative z-20 w-full max-w-sm flex flex-col items-center justify-center"

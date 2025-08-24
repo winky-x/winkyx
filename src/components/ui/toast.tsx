@@ -1,11 +1,10 @@
-// `components/ui/toast.tsx`
+
 "use client"
 
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -51,24 +50,11 @@ const Toast = React.forwardRef<
     VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
   return (
-    // AnimatePresence should wrap the motion component that is being rendered or removed.
-    // However, in this case, AnimatePresence isn't needed here. The motion component
-    // is what needs to be rendered conditionally by the parent Toaster component.
-    // The previous implementation was a bit confused on this.
-    // We'll let the Toaster handle the loop and AnimatePresence, and `Toast` will be the `motion` component.
-    <motion.div
-        key={props.id}
-        initial={{ opacity: 0, y: -50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -50, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-    >
-        <ToastPrimitives.Root
-          ref={ref}
-          className={cn(toastVariants({ variant }), className)}
-          {...props}
-        />
-    </motion.div>
+    <ToastPrimitives.Root
+      ref={ref}
+      className={cn(toastVariants({ variant }), className)}
+      {...props}
+    />
   )
 })
 Toast.displayName = ToastPrimitives.Root.displayName

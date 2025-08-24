@@ -4,7 +4,8 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingVi
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
-import { Svg, Path } from 'react-native-svg';
+import { ArrowLeft, MoreVertical, Plus, ArrowUp, Check, CheckCheck } from 'lucide-react-native';
+
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -20,23 +21,15 @@ const initialMessages = [
     { id: '4', text: "Doing great! Yeah, I saw them. They look amazing! 🔥", time: '9:32 PM', sentByCurrentUser: true, status: 'read' },
 ];
 
-// Icons
-const ArrowLeftIcon = (props) => <Svg height="24" width="24" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M12.707 17.707a1 1 0 0 1-1.414 0l-5-5a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 1.414L8.414 12l4.293 4.293a1 1 0 0 1 0 1.414Z"/></Svg>;
-const MoreVerticalIcon = (props) => <Svg height="24" width="24" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M12 10.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0-12a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></Svg>;
-const PlusIcon = (props) => <Svg height="24" width="24" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M11.5 12.5V18a.5.5 0 0 0 1 0v-5.5H18a.5.5 0 0 0 0-1h-5.5V6a.5.5 0 0 0-1 0v5.5H6a.5.5 0 0 0 0 1h5.5Z"/></Svg>;
-const ArrowUpIcon = (props) => <Svg height="24" width="24" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="m12 7.293 4.646 4.647a.5.5 0 0 0 .708-.707l-5-5a.5.5 0 0 0-.708 0l-5 5a.5.5 0 1 0 .708.707L12 7.293ZM12 18a.5.5 0 0 0 .5-.5v-10a.5.5 0 0 0-1 0v10a.5.5 0 0 0 .5.5Z"/></Svg>;
-const CheckIcon = (props) => <Svg height="16" width="16" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="m9.673 18.25-6.32-6.32a1.063 1.063 0 0 1 1.503-1.504L9.673 15.24l9.17-9.17a1.063 1.063 0 0 1 1.504 1.503l-10.67 10.67a1.062 1.062 0 0 1-1.504 0Z"/></Svg>;
-const DoubleCheckIcon = (props) => <Svg height="16" width="16" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="m18.17 8.871-7.855 7.855a1 1 0 0 1-1.414 0L5.586 13.41a1 1 0 0 1 1.414-1.414l2.608 2.608 7.147-7.147a1 1 0 1 1 1.414 1.414Zm-4.95 7.855L14.634 18a1 1 0 0 1-1.414 0L5.366 10.14a1 1 0 1 1 1.414-1.414l.707.707L5.586 7.53a1 1 0 0 1 1.414-1.414l7.856 7.855a1 1 0 0 1 0 1.414Z"/></Svg>;
-
 
 const MessageBubble = ({ message }) => {
     const isSent = message.sentByCurrentUser;
 
     const StatusIcon = () => {
         if (!isSent) return null;
-        if (message.status === 'read') return <DoubleCheckIcon className="text-blue-500" />;
-        if (message.status === 'delivered') return <DoubleCheckIcon className="text-muted-foreground" />;
-        return <CheckIcon className="text-muted-foreground" />;
+        if (message.status === 'read') return <CheckCheck color="#34b7f1" size={16} />;
+        if (message.status === 'delivered') return <CheckCheck color="hsl(var(--muted-foreground))" size={16} />;
+        return <Check color="hsl(var(--muted-foreground))" size={16} />;
     };
 
     return (
@@ -90,7 +83,7 @@ export default function ChatScreen() {
                 <StyledView className="flex-row shrink-0 items-center justify-between sticky top-0 bg-black z-10 border-b border-gray-800 p-2 h-14">
                     <StyledView className="flex-row items-center gap-2">
                         <StyledTouchableOpacity onPress={() => navigation.goBack()} className="h-9 w-9 rounded-full items-center justify-center active:bg-white/10 active:scale-95">
-                            <ArrowLeftIcon className="text-white" />
+                            <ArrowLeft color="white" size={24} />
                         </StyledTouchableOpacity>
                          <StyledView className="h-8 w-8 rounded-full bg-white/10 items-center justify-center">
                             <StyledText className="text-white font-bold">{chatName.charAt(0)}</StyledText>
@@ -100,7 +93,7 @@ export default function ChatScreen() {
                         <StyledText className="font-medium text-sm text-white truncate">{chatName}</StyledText>
                     </StyledView>
                     <StyledTouchableOpacity className="h-9 w-9 rounded-full items-center justify-center active:bg-white/10 active:scale-95">
-                        <MoreVerticalIcon className="text-white" />
+                        <MoreVertical color="white" size={24} />
                     </StyledTouchableOpacity>
                 </StyledView>
 
@@ -121,10 +114,10 @@ export default function ChatScreen() {
                             className="flex-1 border-none bg-transparent min-h-[2rem] py-2 px-4 text-white placeholder:text-muted-foreground"
                         />
                         <StyledTouchableOpacity className="shrink-0 h-8 w-8 rounded-full items-center justify-center text-muted-foreground active:bg-white/10 active:scale-95 mr-2">
-                            <PlusIcon className="text-white" />
+                            <Plus color="white" size={24}/>
                         </StyledTouchableOpacity>
                         <StyledTouchableOpacity onPress={handleSendMessage} className={`shrink-0 rounded-full h-8 w-8 p-1.5 active:scale-95 mr-2 ${inputText.trim() ? 'bg-white' : 'bg-transparent'}`}>
-                             <ArrowUpIcon className={inputText.trim() ? 'text-black' : 'text-muted-foreground'} />
+                             <ArrowUp size={24} className={inputText.trim() ? 'text-black' : 'text-muted-foreground'} />
                         </StyledTouchableOpacity>
                     </StyledView>
                 </StyledView>
@@ -132,4 +125,3 @@ export default function ChatScreen() {
         </SafeAreaView>
     );
 }
-

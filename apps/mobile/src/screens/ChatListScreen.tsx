@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
-import { Svg, Path } from 'react-native-svg';
+import { Plus, Settings, Compass, Search } from 'lucide-react-native';
 
 // Mock Data (replace with actual data later)
 const chats = [
@@ -18,12 +18,7 @@ const StyledView = styled(View);
 const StyledText = styled(Text);
 const StyledTouchableOpacity = styled(TouchableOpacity);
 const StyledScrollView = styled(ScrollView);
-
-// Icons
-const PlusIcon = (props) => <Svg height="28" width="28" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M11.5 12.5V18a.5.5 0 0 0 1 0v-5.5H18a.5.5 0 0 0 0-1h-5.5V6a.5.5 0 0 0-1 0v5.5H6a.5.5 0 0 0 0 1h5.5Z"/></Svg>;
-const SettingsIcon = (props) => <Svg height="28" width="28" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M12 17.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm-4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm8 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></Svg>;
-const CompassIcon = (props) => <Svg height="28" width="28" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm4-8.5L9.5 14 7 8.5 14.5 7 16 11.5Z"/></Svg>;
-const SearchIcon = (props) => <Svg height="20" width="20" viewBox="0 0 24 24" {...props}><Path fill="currentColor" d="m16.325 14.899l5.38 5.38a1 1 0 0 1-1.415 1.413l-5.38-5.38a8 8 0 1 1 1.414-1.414ZM10 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/></Svg>;
+const StyledTextInput = styled(TextInput);
 
 
 const ChatListItem = ({ chat, onPress }) => (
@@ -57,20 +52,22 @@ export default function ChatListScreen() {
             <StyledView className="flex-row items-center justify-between p-4 h-16">
                  <StyledText className="text-3xl font-headline font-bold text-white">WinkyX</StyledText>
                  <StyledView className="flex-row items-center gap-2">
-                    <StyledTouchableOpacity className="p-1 active:scale-95"><CompassIcon className="text-white"/></StyledTouchableOpacity>
-                    <StyledTouchableOpacity className="p-1 active:scale-95"><PlusIcon className="text-white"/></StyledTouchableOpacity>
-                    <StyledTouchableOpacity onPress={() => navigation.navigate('Profile')} className="p-1 active:scale-95"><SettingsIcon className="text-white"/></StyledTouchableOpacity>
+                    <StyledTouchableOpacity className="p-1 active:scale-95"><Compass color="white" size={28} /></StyledTouchableOpacity>
+                    <StyledTouchableOpacity className="p-1 active:scale-95"><Plus color="white" size={28}/></StyledTouchableOpacity>
+                    <StyledTouchableOpacity onPress={() => navigation.navigate('Profile')} className="p-1 active:scale-95"><Settings color="white" size={28}/></StyledTouchableOpacity>
                  </StyledView>
             </StyledView>
 
             <StyledView className="px-4 pb-4">
                  <StyledView className="relative">
-                    <StyledView className="absolute left-3 top-1/2 -translate-y-2.5 z-10">
-                        <SearchIcon className="text-muted-foreground" />
+                    <StyledView className="absolute left-3 top-1/2 -translate-y-3.5 z-10">
+                        <Search color="hsl(var(--muted-foreground))" size={20} />
                     </StyledView>
-                    <StyledView className="w-full h-10 bg-muted rounded-full pl-10 justify-center">
-                        <StyledText className="text-muted-foreground">Search...</StyledText>
-                    </StyledView>
+                     <StyledTextInput
+                        placeholder="Search..."
+                        placeholderTextColor="hsl(var(--muted-foreground))"
+                        className="w-full h-10 bg-muted rounded-full pl-10 pr-4 text-foreground"
+                    />
                 </StyledView>
             </StyledView>
 
