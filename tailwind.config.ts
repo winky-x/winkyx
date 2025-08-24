@@ -19,7 +19,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        body: ['"Manrope"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
         headline: ['"Orbitron"', '"Rajdhani"', 'sans-serif'],
         code: ['"Source Code Pro"', 'monospace'],
       },
