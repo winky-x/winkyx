@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
 import { ArrowLeft, Camera, QrCode, Lock, ChevronRight, Copy, KeyRound, Palette } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { getIdentity, getPublicKeyFingerprint, Identity } from '../services/identity';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -36,8 +37,17 @@ export default function ProfileScreen() {
     const navigation = useNavigation();
     const [nickname] = useState('User a4b8');
     const [desc] = useState('Founder & Dreamer');
-    const [publicKey] = useState('YJj63V...E7Xw=');
-    const [signingKey] = useState('bsyP+L...K9HA=');
+    const [identity, setIdentity] = useState<Identity | null>(null);
+
+    useEffect(() => {
+        getIdentity().then(setIdentity);
+    }, []);
+    
+    const truncateKey = (key: string | undefined): string => {
+        if (!key) return '...';
+        if (key.length <= 10) return key;
+        return `${key.substring(0, 6)}...${key.substring(key.length - 4)}`;
+    }
 
     const handlePress = (screen: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -92,7 +102,7 @@ export default function ProfileScreen() {
                         </StyledView>
 
                         <StyledView className="flex-row items-center gap-2 bg-muted px-3 py-1.5 rounded-full">
-                            <StyledText className="text-xs text-muted-foreground">ID: a4b8-x9z1-p3q7</StyledText>
+                            <StyledText className="text-xs text-muted-foreground">ID: {identity ? getPublicKeyFingerprint(identity) : '...'}</StyledText>
                         </StyledView>
                     </StyledView>
                     
@@ -104,8 +114,8 @@ export default function ProfileScreen() {
                             <SettingsItem icon={Lock} label="Manage Biometrics" action="chevron" isLast onPress={() => handlePress('Biometrics')} />
                         </StyledView>
                          <StyledView className="bg-card border border-border rounded-xl">
-                            <SettingsItem icon={KeyRound} label="Public Key" value={publicKey} action="copy" isFirst onPress={() => handleCopy('Public Key', publicKey)} />
-                            <SettingsItem icon={KeyRound} label="Signing Key" value={signingKey} action="copy" isLast onPress={() => handleCopy('Signing Key', signingKey)} />
+                            <SettingsItem icon={KeyRound} label="Public Key" value={truncateKey(identity?.publicKeyBase64)} action="copy" isFirst onPress={() => handleCopy('Public Key', identity?.publicKeyBase64 ?? '')} />
+                            <SettingsItem icon={KeyRound} label="Signing Key" value={truncateKey(identity?.signPublicKeyBase64)} action="copy" isLast onPress={() => handleCopy('Signing Key', identity?.signPublicKeyBase64 ?? '')} />
                         </StyledView>
                         <StyledView className="bg-card border border-border rounded-xl">
                             <SettingsItem icon={Palette} label="App Theme" action="chevron" isFirst isLast onPress={() => handlePress('ThemeSettings')} />

@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,23 +7,22 @@ import { styled } from 'nativewind';
 import { ArrowLeft, MoreVertical, Plus, ArrowUp, Check, CheckCheck } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
+import * as crypto from '../services/crypto';
+import * as data from '../services/data';
+import { getIdentity } from '../services/identity';
+import type { Message as MessageType } from '@/lib/types';
+import { getChat, updateChat } from '@/lib/data';
+
+
 const StyledView = styled(View);
 const StyledText = styled(Text);
 const StyledTouchableOpacity = styled(TouchableOpacity);
 const StyledScrollView = styled(ScrollView);
 const StyledTextInput = styled(TextInput);
 
-// Mock Data
-const initialMessages = [
-    { id: '1', text: 'Hey there!', time: '9:30 PM', sentByCurrentUser: false },
-    { id: '2', text: 'Hello! How are you?', time: '9:31 PM', sentByCurrentUser: true, status: 'read' },
-    { id: '3', text: "I'm good, thanks! How about you? Did you see the new designs?", time: '9:31 PM', sentByCurrentUser: false },
-    { id: '4', text: "Doing great! Yeah, I saw them. They look amazing! 🔥", time: '9:32 PM', sentByCurrentUser: true, status: 'read' },
-];
 
-
-const MessageBubble = ({ message }) => {
-    const isSent = message.sentByCurrentUser;
+const MessageBubble = ({ message }: { message: MessageType }) => {
+    const isSent = message.isSentByCurrentUser;
 
     const StatusIcon = () => {
         if (!isSent) return null;
@@ -37,7 +36,7 @@ const MessageBubble = ({ message }) => {
             <StyledView className={`max-w-xs rounded-lg p-2.5 lg:max-w-md ${isSent ? 'bg-accent' : 'bg-secondary'}`}>
                 <StyledText className={`text-sm ${isSent ? 'text-accent-foreground' : 'text-secondary-foreground'}`}>{message.text}</StyledText>
                 <StyledView className="flex-row items-center justify-end gap-1.5 mt-1 h-4">
-                    <StyledText className="text-xs text-muted-foreground">{message.time}</StyledText>
+                    <StyledText className="text-xs text-muted-foreground">{new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</StyledText>
                     {isSent && <StatusIcon />}
                 </StyledView>
             </StyledView>
@@ -48,30 +47,91 @@ const MessageBubble = ({ message }) => {
 export default function ChatScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { chatName } = route.params;
+    const { chatId, chatName } = route.params;
 
-    const [messages, setMessages] = useState(initialMessages);
+    const [messages, setMessages] = useState<MessageType[]>([]);
     const [inputText, setInputText] = useState('');
-    const scrollViewRef = useRef();
+    const scrollViewRef = useRef<ScrollView>();
+
+    const chat = getChat(chatId);
+
+    // Load messages from DB on screen load
+    useEffect(() => {
+        if (chat) {
+          data.getMessagesForPeer(chat.peer.publicKey).then(async (storedMessages) => {
+              const decryptedMessages: MessageType[] = [];
+              const identity = await getIdentity();
+
+              for (const msg of storedMessages) {
+                  const encryptedPayload = JSON.parse(msg.encrypted_content);
+                  const senderPublicKey = crypto.fromBase64(msg.from_public_key);
+                  const senderSignPublicKey = crypto.fromBase64('...'); // This needs to be stored with the peer
+                  
+                  const text = `Encrypted: ${encryptedPayload.ciphertext.substring(0, 20)}...`;
+                  decryptedMessages.push({
+                      id: msg.id,
+                      text: text, // Placeholder for decrypted text
+                      timestamp: msg.timestamp,
+                      isSentByCurrentUser: msg.is_sent_by_current_user,
+                      senderId: msg.from_public_key,
+                      status: msg.status
+                  });
+              }
+              
+              setMessages(decryptedMessages);
+          });
+        } else {
+             setMessages([]);
+        }
+    }, [chatId]);
+
 
     useEffect(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
     }, [messages]);
 
-    const handleSendMessage = () => {
-        if (inputText.trim()) {
+    const handleSendMessage = useCallback(async () => {
+        if (inputText.trim() && chat) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            const newMessage = {
-                id: String(messages.length + 1),
-                text: inputText.trim(),
-                time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-                sentByCurrentUser: true,
-                status: 'sent',
+
+            const identity = await getIdentity();
+            const peerPublicKeyBytes = crypto.fromBase64(chat.peer.publicKey);
+            
+            const encryptedPayload = await crypto.encryptMessage(inputText.trim(), peerPublicKeyBytes, identity.keyPair);
+
+            const encryptedContent = JSON.stringify({
+                ciphertext: crypto.toBase64(encryptedPayload.ciphertext),
+                nonce: crypto.toBase64(encryptedPayload.nonce),
+                signature: crypto.toBase64(encryptedPayload.signature),
+            });
+
+            const storedMessage: data.StoredMessage = {
+                id: `msg-${Date.now()}`,
+                peer_public_key: chat.peer.publicKey,
+                from_public_key: identity.publicKeyBase64,
+                to_public_key: chat.peer.publicKey,
+                encrypted_content: encryptedContent,
+                timestamp: Date.now(),
+                status: 'queued',
+                is_sent_by_current_user: true,
+            }
+            
+            await data.saveMessage(storedMessage);
+            await data.addMessageToQueue(storedMessage);
+            
+            const uiMessage: MessageType = {
+              id: storedMessage.id,
+              senderId: "currentUser",
+              text: inputText.trim(),
+              timestamp: storedMessage.timestamp,
+              isSentByCurrentUser: true,
+              status: "queued",
             };
-            setMessages([...messages, newMessage]);
+            
+            setMessages(prev => [...prev, uiMessage]);
             setInputText('');
         }
-    };
+    }, [inputText, chat]);
     
     const handleShowMore = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
