@@ -1,12 +1,12 @@
-import type { Peer, Chat } from './types';
+import type { Peer, Chat, Message } from './types';
 
 // This is mock data. In a real app, peers would be discovered via BLE/WiFi Direct.
 // The public keys here are now valid, randomly generated Base64 keys.
 export const peers: Peer[] = [
-  { id: '1', name: 'Alice', avatar: 'A', status: 'online', publicKey: 'YJj63Vd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8c/3R6E7Xw=', signPublicKey: 'bsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Qz/2jXJ/7K9HA=' },
-  { id: '2', name: 'Bob', avatar: 'B', status: 'offline', publicKey: 'a4rB/3Fv2PqjZ8c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48=', signPublicKey: 'c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8=' },
-  { id: '3', name: 'Group Chat', avatar: 'GC', status: 'online', isGroup: true, publicKey: 'p/2jXJ/7K9HAbsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Q=', signPublicKey: '2PqjZ8c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48t1h5r3Fv=' },
-  { id: '4', name: 'Charlie', avatar: 'C', status: 'reconnecting', publicKey: 'J/7K9HAbsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Qz/2jX=', signPublicKey: 'd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8c/3R6E7XwYJj63V=' },
+  { id: '1', name: 'QuantumLeap', avatar: 'Q', status: 'online', publicKey: 'YJj63Vd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8c/3R6E7Xw=', signPublicKey: 'bsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Qz/2jXJ/7K9HA=' },
+  { id: '2', name: 'EchoSphere', avatar: 'E', status: 'offline', publicKey: 'a4rB/3Fv2PqjZ8c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48=', signPublicKey: 'c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8=' },
+  { id: '3', name: 'Group Project', avatar: 'G', status: 'online', isGroup: true, publicKey: 'p/2jXJ/7K9HAbsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Q=', signPublicKey: '2PqjZ8c/3R6E7XwYJj63Vd4g3WWfJ+2Mv48t1h5r3Fv=' },
+  { id: '4', name: 'RogueAgent', avatar: 'R', status: 'reconnecting', publicKey: 'J/7K9HAbsyP+LgLjdgRT6jW2PZ4C9TjXk6Zl8Qz/2jX=', signPublicKey: 'd4g3WWfJ+2Mv48t1h5r3Fv2PqjZ8c/3R6E7XwYJj63V=' },
 ];
 
 let chats: Chat[] = [

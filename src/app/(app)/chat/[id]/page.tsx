@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChatInput } from "@/components/chat/chat-input";
-import { getChat, updateChat, getChats } from "@/lib/data";
+import { getChat, updateChat } from "@/lib/data";
 import type { Chat, Message } from "@/lib/types";
 import { ArrowLeft, MoreVertical, User, Trash2, XCircle, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
