@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
 import { Plus, Settings, Compass, Search } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 // Mock Data (replace with actual data later)
 const chats = [
@@ -22,18 +23,21 @@ const StyledTextInput = styled(TextInput);
 
 
 const ChatListItem = ({ chat, onPress }) => (
-    <StyledTouchableOpacity onPress={onPress} className="flex-row items-center gap-4 p-2 rounded-lg active:bg-white/10">
-        <StyledView className={`h-14 w-14 rounded-full items-center justify-center bg-white/10 ${chat.isGroup ? 'bg-purple-500/30' : ''}`}>
-            <StyledText className="text-xl font-bold text-white">{chat.name.charAt(0)}</StyledText>
-            {chat.online && !chat.isGroup && <StyledView className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-black" />}
+    <StyledTouchableOpacity 
+        onPress={onPress} 
+        className="flex-row items-center gap-4 p-2 rounded-lg active:bg-muted/30"
+    >
+        <StyledView className={`h-14 w-14 rounded-full items-center justify-center bg-secondary dark:bg-secondary ${chat.isGroup ? 'bg-purple-500/30' : ''}`}>
+            <StyledText className="text-xl font-bold text-secondary-foreground">{chat.name.charAt(0)}</StyledText>
+            {chat.online && !chat.isGroup && <StyledView className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-background" />}
         </StyledView>
         <StyledView className="flex-1">
             <StyledView className="flex-row justify-between items-center">
-                <StyledText className="font-semibold text-base text-white">{chat.name}</StyledText>
-                <StyledText className="text-xs text-gray-400 font-sans">{chat.time}</StyledText>
+                <StyledText className="font-semibold text-base text-foreground">{chat.name}</StyledText>
+                <StyledText className="text-xs text-muted-foreground font-sans">{chat.time}</StyledText>
             </StyledView>
             <StyledView className="flex-row justify-between items-center mt-1">
-                <StyledText className="text-sm text-gray-400 font-sans flex-1" numberOfLines={1}>{chat.lastMessage}</StyledText>
+                <StyledText className="text-sm text-muted-foreground font-sans flex-1" numberOfLines={1}>{chat.lastMessage}</StyledText>
                 {chat.unread > 0 && (
                     <StyledView className="h-5 w-5 items-center justify-center rounded-full bg-accent">
                         <StyledText className="text-white text-xs font-bold">{chat.unread}</StyledText>
@@ -44,17 +48,34 @@ const ChatListItem = ({ chat, onPress }) => (
     </StyledTouchableOpacity>
 );
 
+const HeaderButton = ({ onPress, children }) => (
+    <StyledTouchableOpacity onPress={onPress} className="p-1 active:scale-95">
+        {children}
+    </StyledTouchableOpacity>
+);
+
 export default function ChatListScreen() {
     const navigation = useNavigation();
 
+    const handlePress = (screen: string) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        navigation.navigate(screen);
+    };
+
     return (
-        <SafeAreaView className="flex-1 bg-black text-white">
+        <SafeAreaView className="flex-1 bg-background text-foreground">
             <StyledView className="flex-row items-center justify-between p-4 h-16">
-                 <StyledText className="text-3xl font-headline font-bold text-white">WinkyX</StyledText>
+                 <StyledText className="text-3xl font-headline font-bold text-foreground">WinkyX</StyledText>
                  <StyledView className="flex-row items-center gap-2">
-                    <StyledTouchableOpacity className="p-1 active:scale-95"><Compass color="white" size={28} /></StyledTouchableOpacity>
-                    <StyledTouchableOpacity className="p-1 active:scale-95"><Plus color="white" size={28}/></StyledTouchableOpacity>
-                    <StyledTouchableOpacity onPress={() => navigation.navigate('Profile')} className="p-1 active:scale-95"><Settings color="white" size={28}/></StyledTouchableOpacity>
+                    <HeaderButton onPress={() => handlePress('Discover')}>
+                        <Compass color="hsl(var(--foreground))" size={28} />
+                    </HeaderButton>
+                    <HeaderButton onPress={() => handlePress('NewChat')}>
+                        <Plus color="hsl(var(--foreground))" size={28}/>
+                    </HeaderButton>
+                    <HeaderButton onPress={() => handlePress('Profile')}>
+                        <Settings color="hsl(var(--foreground))" size={28}/>
+                    </HeaderButton>
                  </StyledView>
             </StyledView>
 

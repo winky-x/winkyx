@@ -1,11 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
 import { ArrowLeft, MoreVertical, Plus, ArrowUp, Check, CheckCheck } from 'lucide-react-native';
-
+import * as Haptics from 'expo-haptics';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -34,8 +34,8 @@ const MessageBubble = ({ message }) => {
 
     return (
         <StyledView className={`flex w-full items-start gap-3 ${isSent ? 'justify-end' : 'justify-start'}`}>
-            <StyledView className={`max-w-xs rounded-lg p-2.5 lg:max-w-md ${isSent ? 'bg-[#222E35]' : 'bg-[#202C33]'}`}>
-                <StyledText className="text-sm text-white whitespace-pre-wrap">{message.text}</StyledText>
+            <StyledView className={`max-w-xs rounded-lg p-2.5 lg:max-w-md ${isSent ? 'bg-accent' : 'bg-secondary'}`}>
+                <StyledText className={`text-sm ${isSent ? 'text-accent-foreground' : 'text-secondary-foreground'}`}>{message.text}</StyledText>
                 <StyledView className="flex-row items-center justify-end gap-1.5 mt-1 h-4">
                     <StyledText className="text-xs text-muted-foreground">{message.time}</StyledText>
                     {isSent && <StatusIcon />}
@@ -60,6 +60,7 @@ export default function ChatScreen() {
 
     const handleSendMessage = () => {
         if (inputText.trim()) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             const newMessage = {
                 id: String(messages.length + 1),
                 text: inputText.trim(),
@@ -71,29 +72,39 @@ export default function ChatScreen() {
             setInputText('');
         }
     };
+    
+    const handleShowMore = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Alert.alert("More Options", "More options menu would appear here.");
+    };
+    
+    const handleAddAttachment = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Alert.alert("Add Attachment", "Attachment selection would open here.");
+    };
 
     return (
-        <SafeAreaView className="flex-1 bg-black text-white">
+        <SafeAreaView className="flex-1 bg-background text-foreground">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1"
                 keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
             >
                 {/* Header */}
-                <StyledView className="flex-row shrink-0 items-center justify-between sticky top-0 bg-black z-10 border-b border-gray-800 p-2 h-14">
+                <StyledView className="flex-row shrink-0 items-center justify-between sticky top-0 z-10 border-b border-border p-2 h-14 bg-background">
                     <StyledView className="flex-row items-center gap-2">
-                        <StyledTouchableOpacity onPress={() => navigation.goBack()} className="h-9 w-9 rounded-full items-center justify-center active:bg-white/10 active:scale-95">
-                            <ArrowLeft color="white" size={24} />
+                        <StyledTouchableOpacity onPress={() => navigation.goBack()} className="h-9 w-9 rounded-full items-center justify-center active:bg-muted/50 active:scale-95">
+                            <ArrowLeft color="hsl(var(--foreground))" size={24} />
                         </StyledTouchableOpacity>
-                         <StyledView className="h-8 w-8 rounded-full bg-white/10 items-center justify-center">
-                            <StyledText className="text-white font-bold">{chatName.charAt(0)}</StyledText>
+                         <StyledView className="h-8 w-8 rounded-full bg-secondary items-center justify-center">
+                            <StyledText className="text-secondary-foreground font-bold">{chatName.charAt(0)}</StyledText>
                         </StyledView>
                     </StyledView>
                     <StyledView className="absolute left-1/2 top-1/2 -translate-x-12 -translate-y-3">
-                        <StyledText className="font-medium text-sm text-white truncate">{chatName}</StyledText>
+                        <StyledText className="font-medium text-sm text-foreground truncate">{chatName}</StyledText>
                     </StyledView>
-                    <StyledTouchableOpacity className="h-9 w-9 rounded-full items-center justify-center active:bg-white/10 active:scale-95">
-                        <MoreVertical color="white" size={24} />
+                    <StyledTouchableOpacity onPress={handleShowMore} className="h-9 w-9 rounded-full items-center justify-center active:bg-muted/50 active:scale-95">
+                        <MoreVertical color="hsl(var(--foreground))" size={24} />
                     </StyledTouchableOpacity>
                 </StyledView>
 
@@ -103,21 +114,21 @@ export default function ChatScreen() {
                 </StyledScrollView>
 
                 {/* Input */}
-                <StyledView className="sticky bottom-0 bg-black z-20 pb-4 px-2 pt-2">
-                    <StyledView className="flex-row rounded-xl bg-[#202C33] py-1 items-center">
+                <StyledView className="sticky bottom-0 bg-background z-20 pb-4 px-2 pt-2">
+                    <StyledView className="flex-row rounded-xl bg-muted py-1 items-center">
                         <StyledTextInput
                             value={inputText}
                             onChangeText={setInputText}
                             placeholder="Message"
-                            placeholderTextColor="#8696a0"
+                            placeholderTextColor="hsl(var(--muted-foreground))"
                             multiline
-                            className="flex-1 border-none bg-transparent min-h-[2rem] py-2 px-4 text-white placeholder:text-muted-foreground"
+                            className="flex-1 border-none bg-transparent min-h-[2rem] py-2 px-4 text-foreground placeholder:text-muted-foreground"
                         />
-                        <StyledTouchableOpacity className="shrink-0 h-8 w-8 rounded-full items-center justify-center text-muted-foreground active:bg-white/10 active:scale-95 mr-2">
-                            <Plus color="white" size={24}/>
+                        <StyledTouchableOpacity onPress={handleAddAttachment} className="shrink-0 h-8 w-8 rounded-full items-center justify-center text-muted-foreground active:bg-white/10 active:scale-95 mr-2">
+                            <Plus color="hsl(var(--foreground))" size={24}/>
                         </StyledTouchableOpacity>
-                        <StyledTouchableOpacity onPress={handleSendMessage} className={`shrink-0 rounded-full h-8 w-8 p-1.5 active:scale-95 mr-2 ${inputText.trim() ? 'bg-white' : 'bg-transparent'}`}>
-                             <ArrowUp size={24} className={inputText.trim() ? 'text-black' : 'text-muted-foreground'} />
+                        <StyledTouchableOpacity onPress={handleSendMessage} className={`shrink-0 rounded-full h-8 w-8 p-1.5 active:scale-95 mr-2 ${inputText.trim() ? 'bg-primary' : 'bg-transparent'}`}>
+                             <ArrowUp size={24} className={inputText.trim() ? 'text-primary-foreground' : 'text-muted-foreground'} />
                         </StyledTouchableOpacity>
                     </StyledView>
                 </StyledView>

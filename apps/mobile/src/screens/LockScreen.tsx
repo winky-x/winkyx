@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Animated, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { styled } from 'nativewind';
 import { Svg, Path } from 'react-native-svg';
+import * as Haptics from 'expo-haptics';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -50,32 +51,44 @@ export default function LockScreen() {
     const navigation = useNavigation();
     const shakeAnimation = useRef(new Animated.Value(0)).current;
 
+    const triggerShake = () => {
+        Animated.sequence([
+            Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+            Animated.timing(shakeAnimation, { toValue: 0, duration: 50, useNativeDriver: true })
+        ]).start();
+    }
+
     useEffect(() => {
         if (pin.length === 4) {
             if (pin === CORRECT_PIN) {
-                // In React Native, sessionStorage doesn't exist. We can pass params instead.
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 navigation.navigate('ChatList', { showWelcomeToast: true });
             } else {
-                Animated.sequence([
-                    Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: 0, duration: 50, useNativeDriver: true })
-                ]).start();
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                triggerShake();
                 setTimeout(() => setPin(""), 500);
             }
         }
     }, [pin, navigation]);
 
     const handleKeyPress = (key) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (pin.length < 4) {
             setPin(pin + key);
         }
     };
     
-    const handleDelete = () => setPin(pin.slice(0, -1));
+    const handleDelete = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setPin(pin.slice(0, -1));
+    };
 
-    const handleBiometric = () => { /* Biometric logic would go here */ };
+    const handleBiometric = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Alert.alert("Biometric Auth", "Biometric authentication flow would be triggered here.");
+    };
 
     return (
         <StyledImageBackground
