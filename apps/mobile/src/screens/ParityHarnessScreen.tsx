@@ -2,6 +2,7 @@
 import React from 'react';
 import { SafeAreaView, View, Text, ScrollView } from 'react-native';
 import { styled } from 'nativewind';
+import LiquidGlass from '../components/LiquidGlass';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -14,6 +15,16 @@ export default function ParityHarnessScreen() {
             <StyledView className="bg-background p-4 space-y-6">
                 <StyledText className="text-foreground text-3xl font-bold mb-4 font-headline">UI Parity Harness</StyledText>
                 
+                 {/* Liquid Glass */}
+                <StyledView>
+                    <StyledText className="text-xl font-bold text-foreground mb-2">Liquid Glass</StyledText>
+                    <StyledView className="items-center justify-center p-4">
+                        <LiquidGlass>
+                           <StyledText className="text-white font-bold text-2xl">W</StyledText>
+                        </LiquidGlass>
+                    </StyledView>
+                </StyledView>
+
                 {/* Colors */}
                 <StyledView>
                     <StyledText className="text-xl font-bold text-foreground mb-2">Colors</StyledText>
